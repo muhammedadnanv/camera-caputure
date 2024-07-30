@@ -19,7 +19,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        #video, #photo {
+        #video, #photo, #3d-viewer {
             border: 1px solid #ddd;
             width: 100%;
             max-width: 320px;
@@ -31,12 +31,12 @@
         #canvas {
             display: none;
         }
-        .camera, .output {
+        .camera, .output, .viewer {
             display: inline-block;
             width: 100%;
             max-width: 340px;
         }
-        #startbutton {
+        #startbutton, #downloadbutton {
             display: block;
             margin: 20px auto;
             padding: 10px 20px;
@@ -49,7 +49,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: background 0.3s ease;
         }
-        #startbutton:hover {
+        #startbutton:hover, #downloadbutton:hover {
             background: linear-gradient(to right, #4b49ac, #6a67ce);
         }
         .contentarea {
@@ -92,6 +92,15 @@
             <canvas id="canvas"></canvas>
             <div class="output">
                 <img id="photo" alt="The screen capture will appear in this box.">
+                <button id="downloadbutton">
+                    <i class="fas fa-download"></i> Download Photo
+                </button>
+            </div>
+            <h1>
+                <i class="fas fa-cube"></i> 3D Viewer
+            </h1>
+            <div class="viewer">
+                <div id="3d-viewer"></div>
             </div>
             <div class="footer">
                 Developed by <a href="https://muhammedadnanavv.vercel.app/" target="_blank">Muhammed Adnan VV</a>
@@ -99,6 +108,9 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         (function() {
             var width = 320;
@@ -108,12 +120,14 @@
             var canvas = null;
             var photo = null;
             var startbutton = null;
+            var downloadbutton = null;
 
             function startup() {
                 video = document.getElementById('video');
                 canvas = document.getElementById('canvas');
                 photo = document.getElementById('photo');
                 startbutton = document.getElementById('startbutton');
+                downloadbutton = document.getElementById('downloadbutton');
 
                 navigator.mediaDevices.getUserMedia({
                         video: true,
@@ -148,6 +162,11 @@
                     ev.preventDefault();
                 }, false);
 
+                downloadbutton.addEventListener('click', function(ev) {
+                    downloadPhoto();
+                    ev.preventDefault();
+                }, false);
+
                 clearphoto();
             }
 
@@ -174,10 +193,40 @@
                 }
             }
 
+            function downloadPhoto() {
+                var link = document.createElement('a');
+                link.href = photo.src;
+                link.download = 'photo.png';
+                link.click();
+            }
+
             window.addEventListener('load', startup, false);
+
+            // 3D Viewer Initialization
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, 320 / 240, 0.1, 1000);
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setSize(320, 240);
+            document.getElementById('3d-viewer').appendChild(renderer.domElement);
+
+            var geometry = new THREE.BoxGeometry();
+            var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
+            var cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+
+            camera.position.z = 5;
+
+            var animate = function () {
+                requestAnimationFrame(animate);
+
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+
+                renderer.render(scene, camera);
+            };
+
+            animate();
         })();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
 </body>
 </html>
